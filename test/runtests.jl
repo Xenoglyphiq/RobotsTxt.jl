@@ -254,7 +254,8 @@ http(status, headers, body) =
         script(responses) = url -> get(responses, url, nothing)
         ok = Response(200, nothing, body)
         for bad in ("example.com", "http://", "https://", "http:///", "HTTPS://a.com", "https://a.com//",
-                    "https://a.com#f", "https://a b.com", "https://a.com/robots.txt", "ws://a.com")
+                    "https://a.com#f", "https://a b.com", "https://a.com/robots.txt", "ws://a.com",
+                    "https://user:secret@example.com", "https://user@example.com", "http://@a.com", "https://a.com@")
             @test code(() -> RobotsTxt.fetch(bad; transport=_ -> error("not called"))) == "robotstxt.invalid_origin"
         end
         @test RobotsTxt.fetch("http://a.com:8080/"; transport=script(Dict("http://a.com:8080/robots.txt" => ok))).policy === :parsed

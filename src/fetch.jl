@@ -36,7 +36,8 @@ end
 # Origins and redirects
 # ---------------------------------------------------------------------------
 
-# scheme://authority with at most a trailing '/' (no path, query or fragment).
+# scheme://host[:port] with at most a trailing '/' (no userinfo, path, query
+# or fragment).
 function check_origin(origin::AbstractString)::String
     s = String(origin)
     rest = startswith(s, "http://") ? 8 : startswith(s, "https://") ? 9 : invalid("invalid_origin")
@@ -46,7 +47,7 @@ function check_origin(origin::AbstractString)::String
     stop >= rest || invalid("invalid_origin")             # empty authority
     for k in rest:stop
         c = b[k]
-        (c == UInt8('/') || c == UInt8('?') || c == UInt8('#') || c <= 0x20 || c == 0x7F) &&
+        (c == UInt8('/') || c == UInt8('?') || c == UInt8('#') || c == UInt8('@') || c <= 0x20 || c == 0x7F) &&
             invalid("invalid_origin")
     end
     return String(b[1:stop])
@@ -134,8 +135,9 @@ end
 
 Spec operation `fetch` (io layer). Requests `origin * "/robots.txt"`, follows
 up to `limits.max_redirects` redirects itself, applies `status_policy` and
-parses a 2xx body. `origin` is `http://` or `https://` plus an authority, with
-at most a trailing `/`.
+parses a 2xx body. `origin` is `http://` or `https://` (lower case) plus a
+host and optional port, with at most a trailing `/`: no userinfo, path, query
+or fragment.
 
 `transport` is called as `transport(url::String)` and returns `nothing` when
 there was no response (connection, TLS or timeout failure), or a value with
