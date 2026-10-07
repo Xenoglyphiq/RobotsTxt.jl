@@ -1,0 +1,46 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: julia ${{ matrix.version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['1.10', '1']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: ${{ matrix.version }}
+      - uses: julia-actions/cache@v3
+      - uses: julia-actions/julia-buildpkg@v1
+
+      - name: Validate vendored spec
+        run: uv run .kit/validate.py .spec
+
+      - name: Tests and conformance
+        uses: julia-actions/julia-runtest@v1
+
+      - name: Canonical examples
+        run: |
+          for e in check_path list_sitemaps explain_decision; do
+            julia --project examples/$e.jl
+          done
+
+      - name: Benchmark runs and reproduces the checksum (timings not recorded from CI)
+        run: |
+          if [ -d .spec/bench ]; then
+            julia --project bench/bench.jl
+          else
+            echo "Bench input isn't vendored yet (.spec/bench arrives with spec 0.1.1); skipping."
+          fi
