@@ -1,7 +1,7 @@
 name = "RobotsTxt"
 uuid = "2002eb0b-db1e-4e44-9216-e92cada092b8"
 authors = ["Xenoglyphiq contributors"]
-version = "0.0.0"
+version = "0.1.0"
 
 [deps]
 Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
