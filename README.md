@@ -1,6 +1,6 @@
 # robots.txt for Julia
 
-Parse robots.txt files and decide whether a crawler may fetch a path. Implements RFC 9309 · Spec v0.1.0 · Conformance: **core ✓ io ✓ full ✓** (125/125)
+Parse robots.txt files and decide whether a crawler may fetch a path. Implements RFC 9309 · Spec v0.1.2 · Conformance: **core ✓ io ✓ full ✓** (130/130)
 
 > **Crawl-delay** is supported as an extension. It is not part of RFC 9309, and it's kept apart: `crawl_delay` never affects `is_allowed`.
 
@@ -121,10 +121,10 @@ Errors are `RobotsError` with a `kind` (always `:invalid_input` here) and a stab
 
 | Benchmark | Reference | This port | Ratio |
 |---|---|---|---|
-| Parse and check 10k paths | Rust `texting_robots` 0.2.2 | not recorded yet | – |
+| `parse` + `is_allowed` pass | Rust `texting_robots` 0.2.2: 13.10 ms | 19.60 ms | 1.50× |
 
-The bench input arrives with spec 0.1.1; numbers will be recorded here before the first release. The spec's target is within 2× of the reference.
+One pass parses the 79,936-byte `bench/robots.txt` once per crawler (10 times) and checks 10,000 paths; method in `.spec/bench/README.md`. Recorded 2026-10-06 on an Apple M5 Pro, interleaved with the reference in one session (median of three rounds); checksum 24281055 reproduced every pass. Julia 1.13.1.
 
 ## License
 
-MIT OR Apache-2.0
+MIT OR Apache-2.0. Some conformance cases in `.spec/` are translated from Google's `robotstxt` tests (Apache-2.0); see `.spec/NOTICE`.
