@@ -1,6 +1,6 @@
 # robots.txt for Julia
 
-Parse robots.txt files and decide whether a crawler may fetch a path. Implements RFC 9309 · Spec v0.1.0 · Conformance: **core ✓ io ✓ full ✓** (125/125)
+Parse robots.txt files and decide whether a crawler may fetch a path. Implements RFC 9309 · Spec v0.1.2 · Conformance: **core ✓ io ✓ full ✓** (130/130)
 
 > **Crawl-delay** is supported as an extension. It is not part of RFC 9309, and it's kept apart: `crawl_delay` never affects `is_allowed`.
 
@@ -127,4 +127,4 @@ The bench input arrives with spec 0.1.1; numbers will be recorded here before th
 
 ## License
 
-MIT OR Apache-2.0
+MIT OR Apache-2.0. Some conformance cases in `.spec/` are translated from Google's `robotstxt` tests (Apache-2.0); see `.spec/NOTICE`.
