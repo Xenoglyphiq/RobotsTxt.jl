@@ -184,7 +184,8 @@ function keyis(data, a::Int, z::Int, key::String)::Bool
     return true
 end
 
-# A non-negative decimal, [0-9]+(\.[0-9]+)?, as Float64 seconds; else nothing.
+# A non-negative decimal, [0-9]+(\.[0-9]+)?, that is finite as a correctly
+# rounded Float64: seconds. Anything else is nothing (skipped).
 function delay_value(data, a::Int, z::Int)::Union{Nothing,Float64}
     a <= z || return nothing
     i = a
@@ -192,6 +193,7 @@ function delay_value(data, a::Int, z::Int)::Union{Nothing,Float64}
         i += 1
     end
     i == a && return nothing
+    int_end = i
     if i <= z
         data[i] == UInt8('.') || return nothing
         i += 1
@@ -203,8 +205,14 @@ function delay_value(data, a::Int, z::Int)::Union{Nothing,Float64}
     end
     s = String(Vector{UInt8}(view(data, a:z)))
     v = tryparse(Float64, s)
-    # Base reports overflow and underflow as failures; round like strtod would.
-    return v === nothing ? Float64(Base.parse(BigFloat, s)) : v
+    v === nothing || return isfinite(v) ? v : nothing
+    # Base reports a result out of range as a failure (strtod's ERANGE). With a
+    # non-zero integer part it overflowed: skipped. Otherwise it is below half
+    # the smallest subnormal, and rounds to 0.0.
+    for k in a:(int_end - 1)
+        data[k] == UInt8('0') || return nothing
+    end
+    return 0.0
 end
 
 mutable struct GroupBuilder

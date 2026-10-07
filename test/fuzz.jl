@@ -105,7 +105,8 @@ function check_strings(robots)
             isvalid(r.pattern) || error("invalid UTF-8 in a pattern")
             r.line >= 1 || error("rule line < 1")
         end
-        g.crawl_delay === nothing || g.crawl_delay >= 0 || error("negative crawl_delay")
+        g.crawl_delay === nothing || (isfinite(g.crawl_delay) && g.crawl_delay >= 0) ||
+            error("crawl_delay not finite and non-negative")
     end
     all(isvalid, robots.sitemaps) || error("invalid UTF-8 in sitemaps")
 end

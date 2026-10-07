@@ -230,7 +230,10 @@ http(status, headers, body) =
         delay(text) = RobotsTxt.parse("User-agent: a\n" * text).groups[1].crawl_delay
         @test delay("Crawl-delay: 1.\nCrawl-delay: .5\nCrawl-delay: 1e3\nCrawl-delay: +1\nCrawl-delay: 0.25\n") == 0.25
         @test delay("Crawl-delay: 0\nCrawl-delay: 4\n") == 0.0
-        @test delay("Crawl-delay: " * "9"^400 * "\n") == Inf
+        @test delay("Crawl-delay: " * "9"^400 * "\nCrawl-delay: 6\n") == 6.0      # not finite: skipped
+        @test delay("Crawl-delay: " * "9"^309 * ".5\n") === nothing
+        @test delay("Crawl-delay: 0" * "0"^400 * "1.5\n") == 1.5
+        @test delay("Crawl-delay: 0." * "0"^323 * "3\n") == nextfloat(0.0)    # rounds to the smallest subnormal
         @test delay("Crawl-delay: 0." * "0"^400 * "1\n") == 0.0
         @test delay("Crawl-delay: 1 2\n") === nothing
         r = RobotsTxt.parse("User-agent: a\nDisallow: /\n\nUser-agent: a\nCrawl-delay: 7\n")

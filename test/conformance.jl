@@ -19,7 +19,9 @@ end
 
 # Results as canonical JSON values (spec §6).
 canon(::Nothing) = nothing
-canon(x::Union{Bool,Real,String}) = x
+canon(x::Union{Bool,Integer,String}) = x
+# Canonical JSON floats: numbers, or "NaN" / "Infinity" / "-Infinity" strings.
+canon(x::AbstractFloat) = isnan(x) ? "NaN" : x == Inf ? "Infinity" : x == -Inf ? "-Infinity" : Float64(x)
 canon(s::Symbol) = String(s)
 canon(r::Rule) = Dict("allow" => r.allow, "pattern" => r.pattern, "line" => Int(r.line))
 canon(g::Group) = Dict("user_agents" => g.user_agents, "rules" => canon.(g.rules), "crawl_delay" => canon(g.crawl_delay))
@@ -87,7 +89,17 @@ function run_case(case)::Union{Nothing,String}
         return nothing
     end
     haskey(expect, "value") || return "expected an error, got $(repr(result))"
-    want = expect["value"]
+    # A result that can't be converted, compared or shown is a failed case,
+    # never an exception out of the runner.
+    try
+        return compare_result(case, result)
+    catch e
+        return "could not compare result $(repr(result)): $(sprint(showerror, e))"
+    end
+end
+
+function compare_result(case, result)::Union{Nothing,String}
+    want = case["expect"]["value"]
     got = canon(result)
     compare = case["compare"]
     ok = if compare == "float_tol"
